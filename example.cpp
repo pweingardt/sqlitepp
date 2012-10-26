@@ -3,7 +3,9 @@
 
 int main() {
     std::cout << "Opening database test.db..." << std::endl;
-    sqlitepp::Database db("test.db");
+    // :memory: opens an in-memory database
+    // use file paths if you want to open a sqlite database file
+    sqlitepp::Database db(":memory:");
 
     std::cout << "Creating table..." << std::endl;
     int v = db.exec("CREATE TABLE users (name TEXT, password TEXT);");
@@ -23,6 +25,24 @@ int main() {
     while(st.fetchRow()) {
         std::cout << "Username: " << st.getString("name")
             << ", password: " << st.getString("password") << std::endl;
+    }
+
+    try {
+        sqlitepp::Database db2;
+        db2.exec("COMMIT;");
+
+        std::cout << "Exceptions doen't work." << std::endl;
+    } catch(sqlitepp::SQLiteException& e) {
+        std::cout << "Exceptions work." << std::endl;
+    }
+
+    try {
+        sqlitepp::Statement st(db);
+        st.bindInt(1, 4);
+
+        std::cout << "Exceptions doen't work." << std::endl;
+    } catch(sqlitepp::SQLiteException& e) {
+        std::cout << "Exceptions work." << std::endl;
     }
 }
 

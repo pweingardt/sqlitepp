@@ -19,11 +19,24 @@
 #include "sqlitepp.h"
 
 namespace sqlitepp {
+
+    SQLiteException DatabaseNotOpened("Database has not been opened yet.");
+    SQLiteException DatabaseOpened("A database has been opened already.");
+
+    inline void Database::checkDatabaseOpened() const {
+        if(!this->isopen) {
+            throw DatabaseNotOpened;
+        }
+    }
+
     int Database::getLastRowId(void) {
+        this->checkDatabaseOpened();
+
         return sqlite3_last_insert_rowid(this->database);
     }
 
     Database::Database(const std::string& file, const OpenFlags flags) {
+        this->init();
         this->open(file, flags);
     }
 
@@ -38,7 +51,10 @@ namespace sqlitepp {
     }
 
     void Database::open(const std::string& file, const OpenFlags flags) {
-        this->init();
+        if(this->isopen) {
+            throw DatabaseOpened;
+        }
+
         int flag = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE;
 
         switch(flags) {
@@ -80,6 +96,7 @@ namespace sqlitepp {
     }
 
     int Database::exec(const std::string& str) {
+        this->checkDatabaseOpened();
 
         this->lastResult = sqlite3_exec(this->database, str.c_str(), NULL, NULL, NULL);
         if(this->lastResult != SQLITE_OK) {
@@ -90,6 +107,8 @@ namespace sqlitepp {
     }
 
     void Database::beginTransaction(const TransactionFlags flags) {
+        // No need do check, if a database has been opened, exec does that
+
         if(this->transaction) {
             return;
         }
@@ -115,6 +134,7 @@ namespace sqlitepp {
     }
 
     void Database::rollback(void) {
+        // No need do check, if a database has been opened, exec does that
         if(!this->transaction) {
             return;
         }
@@ -124,6 +144,7 @@ namespace sqlitepp {
     }
 
     void Database::endTransaction(void) {
+        // No need do check, if a database has been opened, exec does that
         if(!this->transaction) {
             return;
         }

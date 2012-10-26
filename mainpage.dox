@@ -1,0 +1,17 @@
+/**
+ * @file parampp.h
+ * @brief Small C++ parameter library
+ * @mainpage
+
+This is a small sqlite C++ library.
+
+For example:
+You want to access a SQLite library but you don't want to use the SQLite C functions for whatever reason.
+<p>
+You can use this library and access the sqlite database in a C++ way.
+<p>
+See example.cpp for a small example.
+
+ */
+
+

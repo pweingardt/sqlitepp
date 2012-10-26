@@ -22,12 +22,26 @@
 
 namespace sqlitepp {
 
+    SQLiteException StatementNotPrepared("The statement has not been prepared or it has been finalized.");
+
+    inline void Statement::checkPrepared() const {
+        if(this->finalized) {
+            throw StatementNotPrepared;
+        }
+    }
+
     Statement::Statement(Database& database) : db(database) {
+        if(!db.isOpen()) {
+            throw DatabaseNotOpened;
+        }
+
         this->finalized = true;
         this->statement = NULL;
     }
 
     void Statement::exec() {
+        this->checkPrepared();
+
         this->step();
         this->finalize();
     }
@@ -49,6 +63,8 @@ namespace sqlitepp {
     }
 
     StepValue Statement::step() {
+        this->checkPrepared();
+
         this->lastResult = sqlite3_step(this->statement);
 
         switch(this->lastResult) {
@@ -75,10 +91,14 @@ namespace sqlitepp {
     }
 
     bool Statement::fetchRow(void) {
+        this->checkPrepared();
+
         return (this->step() == ROW);
     }
 
     int Statement::getInt(const std::string& name) const {
+        this->checkPrepared();
+
         if(this->columns.find(name) == this->columns.end()) {
             std::cout << "Unknown column " << name << std::endl;
         }
@@ -86,14 +106,20 @@ namespace sqlitepp {
     }
 
     int Statement::getInt(const int index) const {
+        this->checkPrepared();
+
         return sqlite3_column_int(this->statement, index);
     }
 
     void Statement::getInt(const int index, int& out) const {
+        this->checkPrepared();
+
         out = this->getInt(index);
     }
 
     std::string Statement::getString(const int index) const {
+        this->checkPrepared();
+
         const char* p = (const char*)sqlite3_column_text(this->statement, index);
         if(p) {
             return std::string(p);
@@ -103,6 +129,8 @@ namespace sqlitepp {
     }
 
     std::string Statement::getString(const std::string& name) const {
+        this->checkPrepared();
+
         if(this->columns.find(name) == this->columns.end()) {
             std::cout << "Unknown column " << name << std::endl;
         }
@@ -110,10 +138,14 @@ namespace sqlitepp {
     }
 
     void Statement::getString(const int index, std::string& out) const {
+        this->checkPrepared();
+
         out = this->getString(index);
     }
 
     double Statement::getDouble(const std::string& name) const {
+        this->checkPrepared();
+
         if(this->columns.find(name) == this->columns.end()) {
             std::cout << "Unknown column " << name << std::endl;
         }
@@ -121,26 +153,38 @@ namespace sqlitepp {
     }
 
     double Statement::getDouble(const int index) const {
+        this->checkPrepared();
+
         return sqlite3_column_double(this->statement, index);
     }
 
     void Statement::getDouble(const int index, double& out) const {
+        this->checkPrepared();
+
         out = this->getDouble(index);
     }
 
     void Statement::bindInt(const int index, const int value) {
+        this->checkPrepared();
+
         this->lastResult = sqlite3_bind_int(this->statement, index, value);
     }
 
     void Statement::bindString(const int index, const std::string& value) {
+        this->checkPrepared();
+
         this->lastResult = sqlite3_bind_text(this->statement, index, value.c_str(), value.size(), NULL);
     }
 
     void Statement::bindDouble(const int index, const double value) {
+        this->checkPrepared();
+
         this->lastResult = sqlite3_bind_double(this->statement, index, value);
     }
 
     void Statement::bindNull(const int index) {
+        this->checkPrepared();
+
         this->lastResult = sqlite3_bind_null(this->statement, index);
     }
 

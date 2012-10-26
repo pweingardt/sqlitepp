@@ -6,12 +6,14 @@ FIND_PACKAGE(SQLite REQUIRED)
 
 INCLUDE_DIRECTORIES(${SQLITE_INCLUDE_DIR})
 
+OPTION(SQLITEPP_EXAMPLE "Build sqlitepp example" OFF)
+
 ADD_LIBRARY(sqlitepp STATIC
 	database.cpp statement.cpp misc.cpp)
 
 TARGET_LINK_LIBRARIES(sqlitepp ${SQLITE_LIBRARIES})
 
 IF(SQLITEPP_EXAMPLE)
-    ADD_EXECUTABLE(example example.cpp)
-    TARGET_LINK_LIBRARIES(example sqlitepp)
+    ADD_EXECUTABLE(sqlitepp_example example.cpp)
+    TARGET_LINK_LIBRARIES(sqlitepp_example sqlitepp)
 ENDIF(SQLITEPP_EXAMPLE)
